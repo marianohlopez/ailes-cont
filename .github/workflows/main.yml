@@ -1,0 +1,34 @@
+name: Ejecutar script diario
+
+on:
+  schedule:
+    - cron: '40 18 * * *' 
+  workflow_dispatch:    
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repo
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: |
+          pip install mysql-connector-python openpyxl yagmail python-dotenv
+
+      - name: Ejecutar script
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          MAIL_AUTOR: ${{ secrets.MAIL_AUTOR }}
+          APP_GMAIL_PASS: ${{ secrets.APP_GMAIL_PASS }}
+        run: |
+          python fact.py
