@@ -1,0 +1,21 @@
+services:
+  - type: cron
+    name: alerta-facturas
+    schedule: "40 18 * * *" # Todos los días a las 9am UTC
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: MAIL_AUTOR
+        sync: false
+      - key: APP_GMAIL_PASS
+        sync: false
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python fact.py"
