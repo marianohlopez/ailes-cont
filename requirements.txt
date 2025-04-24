@@ -1,4 +1,0 @@
-mysql-connector-python
-openpyxl
-yagmail
-python-dotenv
