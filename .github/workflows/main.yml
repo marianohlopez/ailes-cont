@@ -2,8 +2,8 @@ name: Ejecutar script diario
 
 on:
   schedule:
-    - cron: '40 18 * * *' 
-  workflow_dispatch:    
+    - cron: "30 15 * * *"
+  workflow_dispatch:
 
 jobs:
   run-script:
@@ -15,7 +15,7 @@ jobs:
       - name: Configurar Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Instalar dependencias
         run: |
