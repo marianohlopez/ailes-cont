@@ -17,6 +17,8 @@ DB_NAME = os.getenv('DB_NAME')
 MAIL_AUTOR = os.getenv("MAIL_AUTOR")
 APP_GMAIL_PASS = os.getenv("APP_GMAIL_PASS")
 
+print("PORT RECIBIDO", DB_PORT)
+
 # --- CONEXIÓN MYSQL ---
 conn = mysql.connector.connect(
     host=DB_HOST,
