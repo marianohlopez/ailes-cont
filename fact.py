@@ -16,8 +16,7 @@ DB_PASS = os.getenv('DB_PASS')
 DB_NAME = os.getenv('DB_NAME')
 MAIL_AUTOR = os.getenv("MAIL_AUTOR")
 APP_GMAIL_PASS = os.getenv("APP_GMAIL_PASS")
-
-print("PORT RECIBIDO", DB_PORT)
+MAIL_DESTINO = os.getenv("MAIL_DESTINO")
 
 # --- CONEXIÓN MYSQL ---
 conn = mysql.connector.connect(
@@ -65,14 +64,13 @@ if datos_para_excel:
     # Ruta de salida
     fecha_actual_str = hoy.strftime('%Y-%m-%d')
     nombre_archivo = f"alerta_fechas_{fecha_actual_str}.xlsx"
-    """ ruta_salida = os.path.join(os.getcwd(), nombre_archivo) """
 
     wb.save(nombre_archivo)
 
     yag = yagmail.SMTP(MAIL_AUTOR, APP_GMAIL_PASS)
 
     yag.send(
-        to="ml.3012@gmail.com",
+        to=MAIL_DESTINO,
         subject="prueba",
         contents="Reporte de deudas",
         attachments=nombre_archivo

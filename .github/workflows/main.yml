@@ -30,5 +30,6 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           MAIL_AUTOR: ${{ secrets.MAIL_AUTOR }}
           APP_GMAIL_PASS: ${{ secrets.APP_GMAIL_PASS }}
+          MAIL_DESTINO: ${{ secrets.MAIL_DESTINO }}
         run: |
           python fact.py
