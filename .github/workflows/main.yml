@@ -1,8 +1,8 @@
-name: Ejecutar script diario
+name: Ejecutar script ailes-cont
 
 on:
   schedule:
-    - cron: "05 18 * * *"
+    - cron: "45 18 * * *"
   workflow_dispatch:
 
 jobs:
