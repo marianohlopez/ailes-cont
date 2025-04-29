@@ -2,7 +2,7 @@ name: Ejecutar script diario
 
 on:
   schedule:
-  #  - cron: "30 15 * * *"
+    - cron: "05 18 * * *"
   workflow_dispatch:
 
 jobs:

@@ -31,7 +31,10 @@ cursor = conn.cursor()
 
 # --- CONSULTA DE FECHAS ---
 cursor.execute(
-    "SELECT NroComprobante, cobro_fec_calc, factura_cobro_descrip FROM v_comprobantes")
+    "SELECT c.NroComprobante, c.cbteFch, c.factura_cobro_descrip, o.os_nombre, p.alumno_nombre, p.alumno_apellido" +
+    " FROM v_comprobantes c JOIN v_os o ON c.os_id = o.os_id " +
+    " JOIN v_prestaciones p ON c.prestacion_id = p.prestacion_id" +
+    " WHERE YEAR(cbteFch) = 2025 AND factura_cobro_descrip = 'PENDIENTE' COLLATE utf8mb4_0900_ai_ci")
 registros = cursor.fetchall()
 
 hoy = datetime.now()
@@ -39,13 +42,15 @@ hoy = datetime.now()
 # --- DATOS PARA EXCEL ---
 datos_para_excel = []
 
-for id, fecha_str, descrip in registros:
-    if fecha_str != "" and descrip == "PENDIENTE":
+for id, fecha_str, descrip, oSocial, alum_nombre, alum_apellido in registros:
+    if fecha_str != "":
+        alum_completo = f"{alum_apellido}, {alum_nombre}"
         fecha = fecha_str if isinstance(
             fecha_str, datetime) else datetime.strptime(str(fecha_str), '%Y-%m-%d')
         diferencia = (hoy - fecha).days
-        if diferencia > 60:
-            datos_para_excel.append([id, fecha.date(), diferencia, descrip])
+        if diferencia > 45:
+            datos_para_excel.append(
+                [id, fecha.date(), diferencia, descrip, oSocial, alum_completo])
 
 # --- EXPORTAR A EXCEL ---
 if datos_para_excel:
@@ -54,8 +59,8 @@ if datos_para_excel:
     ws.title = "Alertas"
 
     # Cabeceras
-    ws.append(["ID", "Fecha de última revisión",
-              "Días desde la revisión", "Estado"])
+    ws.append(["ID", "Fecha de fact.",
+              "Días desde fecha de fact.", "Estado", "OS", "Alumno"])
 
     # Datos
     for fila in datos_para_excel:
@@ -71,8 +76,8 @@ if datos_para_excel:
 
     yag.send(
         to=MAIL_DESTINO,
-        subject="prueba",
-        contents="Reporte de deudas",
+        subject="Reporte de Facturas emitidas-Cobros",
+        contents="Buenos días, se adjunta el reporte de deudas. ¡Saludos!",
         attachments=nombre_archivo
     )
 
