@@ -1,6 +1,7 @@
 import mysql.connector
 from datetime import datetime
 from openpyxl import Workbook
+from openpyxl.styles import Font
 import yagmail
 from dotenv import load_dotenv
 import os
@@ -61,6 +62,9 @@ if datos_para_excel:
     # Cabeceras
     ws.append(["ID", "Fecha de fact.",
               "Días desde fecha de fact.", "Estado", "OS", "Alumno"])
+
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
 
     # Datos
     for fila in datos_para_excel:

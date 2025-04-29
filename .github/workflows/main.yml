@@ -2,7 +2,7 @@ name: Ejecutar script ailes-cont
 
 on:
   schedule:
-    - cron: "45 18 * * *"
+    - cron: "0 12 * * *"
   workflow_dispatch:
 
 jobs:
