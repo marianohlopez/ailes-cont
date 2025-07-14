@@ -1,4 +1,4 @@
-# 📌 Reporte de Facturas Pendientes – Alerta Contable
+# 📌 Pipeline de Alerta Contable
 
 Este proyecto automatiza la extracción, análisis y envío de reportes sobre facturas con estado "pendiente" emitidas desde una plataforma de gestión administrativa con conexión a una base de datos MySQL. El objetivo es facilitar el seguimiento contable de aquellas facturas que llevan más de 45 días sin ser cobradas, generando alertas para su gestión.
 
