@@ -12,6 +12,8 @@ Este proyecto automatiza la extracción, análisis y envío de reportes sobre fa
 - Generar un reporte en Excel con información clave (observaciones, etiquetas, obra social, alumno).
 - Enviar el reporte automáticamente al sector contable.
 
+<img width="1344" height="900" alt="pipeline-aletacont" src="https://github.com/user-attachments/assets/22f310e1-e093-40ca-b20a-d7e64c0daf9b" />
+
 El script está pensado para ejecutarse de forma local o automática mediante GitHub Actions, permitiendo su integración en entornos de trabajo sin servidores dedicados.
 
 ---
