@@ -31,7 +31,7 @@ El script está pensado para ejecutarse de forma local o automática mediante Gi
 
 #### 4. Automatización con GitHub Actions
 
-El archivo `main.yml` ejecuta el script de lunes a viernes a las 11:00 (hora UTC).
+El archivo `main.yml` ejecuta el script los lunes a las 11:00 (hora UTC).
 
 ---
 
