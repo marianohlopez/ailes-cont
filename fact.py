@@ -143,7 +143,7 @@ def enviar_correo(nombre_archivo):
         yag.send(
             to=MAIL_DESTINO,
             subject="Reporte de Facturas emitidas - Cobros",
-            contents="Buenos días, se adjunta el reporte de deudas. ¡Saludos!",
+            contents="Buenos días, se adjunta el reporte de facturación. ¡Saludos!",
             attachments=nombre_archivo
         )
         print("Correo enviado correctamente.")
