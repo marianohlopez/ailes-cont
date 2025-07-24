@@ -35,9 +35,9 @@ def conectar_db():
         exit(1)
 
 
-def extraer_datos(cursor):
+def extraer_datos_deudas(cursor):
     query = """
-        SELECT c.NroComprobante, c.cbteFch, c.factura_cobro_descrip, c.mes_anio, o.os_nombre,
+        SELECT c.NroComprobante, c.ImpTotal, c.cbteFch, c.factura_cobro_descrip, c.mes_anio, o.os_nombre,
                p.alumno_nombre, p.alumno_apellido, c.factura_obs, e.etiqueta
         FROM v_comprobantes c
         LEFT JOIN v_etiquetas_facturas e ON c.id = e.comprobante_id
@@ -49,10 +49,29 @@ def extraer_datos(cursor):
     cursor.execute(query)
     return cursor.fetchall()
 
+def extraer_datos_cobrados(cursor):
+    query = """
+        SELECT c.NroComprobante, c.ImpTotal, c.cbteFch, c.fec_envio_os, c.factura_cobro_descrip, c.mes_anio,
+               o.os_nombre, p.alumno_nombre, p.alumno_apellido, c.factura_obs, e.etiqueta
+        FROM v_comprobantes c
+        LEFT JOIN v_etiquetas_facturas e ON c.id = e.comprobante_id
+        JOIN v_os o ON c.os_id = o.os_id
+        JOIN v_prestaciones p ON c.prestacion_id = p.prestacion_id
+        WHERE c.fec_envio_os IS NOT NULL
+          AND c.fec_envio_os >= CURDATE() - INTERVAL 60 DAY
+          AND (
+            c.factura_cobro_descrip = 'COBRADA TOTAL' COLLATE utf8mb4_0900_ai_ci OR
+            c.factura_cobro_descrip = 'COBRADA PARCIAL' COLLATE utf8mb4_0900_ai_ci
+          )
+    """
+    cursor.execute(query)
+    return cursor.fetchall()
+
+
 
 def transformar_datos(registros, hoy):
     resultados = []
-    for id, fecha_str, descrip, periodo, oSocial, alum_nombre, alum_apellido, obs, etiqueta in registros:
+    for id, importe, fecha_str, descrip, periodo, oSocial, alum_nombre, alum_apellido, obs, etiqueta in registros:
         if fecha_str:
             try:
                 fecha = fecha_str if isinstance(fecha_str, datetime) else datetime.strptime(str(fecha_str), '%Y-%m-%d')
@@ -60,6 +79,7 @@ def transformar_datos(registros, hoy):
                 if dias > 45:
                     resultados.append([
                         id,
+                        importe,
                         fecha.date(),
                         dias,
                         descrip,
@@ -74,22 +94,44 @@ def transformar_datos(registros, hoy):
     return resultados
 
 
-def exportar_excel(datos, hoy):
+def exportar_excel(datos_alertas, datos_cobrados, hoy):
     wb = Workbook()
     ws = wb.active
     ws.title = "Alertas"
 
-    headers = ["ID_Factura", "Fecha de fact.", "Días desde fecha de fact.", "Estado", "Periodo",
+    headers_alertas = ["ID_Factura", "Importe", "Fecha de fact.", "Días desde fecha de fact.", "Estado", "Periodo",
                "OS", "Alumno", "Observaciones", "Etiqueta"]
-    ws.append(headers)
+    ws.append(headers_alertas)
 
     for cell in ws[1]:
         cell.font = Font(bold=True)
 
-    for fila in datos:
+    for fila in datos_alertas:
         ws.append(fila)
 
-    nombre_archivo = f"alerta_fechas_{hoy.strftime('%Y-%m-%d')}.xlsx"
+    # Segunda hoja: Facturas Cobradas Recientes
+    ws2 = wb.create_sheet(title="Cobradas últimos 60 días")
+    headers_cobradas = ["ID_Factura", "Importe", "Fecha de fact.", "Fecha envío OS", "Estado", "Periodo",
+                        "OS", "Alumno", "Observaciones", "Etiqueta"]
+    ws2.append(headers_cobradas)
+    for cell in ws2[1]:
+        cell.font = Font(bold=True)
+
+    for id, importe, cbteFch, fec_envio, estado, periodo, os, nom, ape, obs, etiqueta in datos_cobrados:
+        ws2.append([
+            id,
+            importe,
+            cbteFch.date() if isinstance(cbteFch, datetime) else cbteFch,
+            fec_envio.date() if isinstance(fec_envio, datetime) else fec_envio,
+            estado,
+            periodo,
+            os,
+            f"{ape}, {nom}",
+            obs,
+            etiqueta
+        ])
+
+    nombre_archivo = f"reporte_facturas_{hoy.strftime('%Y-%m-%d')}.xlsx"
     wb.save(nombre_archivo)
     print(f"Archivo Excel generado: {nombre_archivo}")
     return nombre_archivo
@@ -115,16 +157,19 @@ def main():
     conn = conectar_db()
     cursor = conn.cursor()
 
-    registros = extraer_datos(cursor)
-    print(f"Registros extraídos: {len(registros)}")
+    registros_alertas = extraer_datos_deudas(cursor)
+    print(f"Registros de alerta extraídos: {len(registros_alertas)}")
 
-    datos_filtrados = transformar_datos(registros, hoy)
+    datos_alertas = transformar_datos(registros_alertas, hoy)
 
-    if datos_filtrados:
-        archivo_excel = exportar_excel(datos_filtrados, hoy)
+    registros_cobrados = extraer_datos_cobrados(cursor)
+    print(f"Registros de cobradas recientes: {len(registros_cobrados)}")
+
+    if datos_alertas or registros_cobrados:
+        archivo_excel = exportar_excel(datos_alertas, registros_cobrados, hoy)
         enviar_correo(archivo_excel)
     else:
-        print("No hay registros con más de 45 días.")
+        print("No hay registros relevantes para exportar.")
 
     cursor.close()
     conn.close()
