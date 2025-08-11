@@ -9,6 +9,7 @@ Este proyecto automatiza la extracción, análisis y envío de reportes sobre fa
 - Automatizar el monitoreo de facturas en estado pendiente.
 - Calcular los días transcurridos desde la emisión.
 - Filtrar aquellas facturas que superan los 45 días sin cobro.
+- Filtrar aquellas facturas que se cobraron dentro de los 60 días.
 - Generar un reporte en Excel con información clave (observaciones, etiquetas, obra social, alumno).
 - Enviar el reporte automáticamente al sector contable.
 
@@ -37,11 +38,13 @@ El archivo `main.yml` ejecuta el script los lunes a las 11:00 (hora UTC).
 
 ### 📊 Resultado del proceso
 
-- Se genera un archivo Excel llamado `alerta_fechas_YYYY-MM-DD.xlsx` que incluye:
+- Se genera un archivo Excel llamado `reporte_facturas_YYYY-MM-DD.xlsx` que incluye:
 
   - ID de factura
   - Fecha de emisión
   - Días transcurridos desde la emisión
+  - Fecha de envio
+  - Fecha de cobro
   - Estado
   - Periodo
   - Obra social correspondiente

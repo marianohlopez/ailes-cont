@@ -51,18 +51,21 @@ def extraer_datos_deudas(cursor):
 
 def extraer_datos_cobrados(cursor):
     query = """
-        SELECT c.NroComprobante, c.ImpTotal, c.cbteFch, c.fec_envio_os, c.factura_cobro_descrip, c.mes_anio,
-               o.os_nombre, p.alumno_nombre, p.alumno_apellido, c.factura_obs, e.etiqueta
+        SELECT c.NroComprobante, c.ImpTotal, c.cbteFch, c.fec_envio_os,  c.cobro_fec, c.factura_cobro_descrip, 
+            c.mes_anio, o.os_nombre, p.alumno_nombre, p.alumno_apellido, c.factura_obs, e.etiqueta
         FROM v_comprobantes c
         LEFT JOIN v_etiquetas_facturas e ON c.id = e.comprobante_id
         JOIN v_os o ON c.os_id = o.os_id
         JOIN v_prestaciones p ON c.prestacion_id = p.prestacion_id
         WHERE c.fec_envio_os IS NOT NULL
-          AND c.fec_envio_os >= CURDATE() - INTERVAL 60 DAY
-          AND (
-            c.factura_cobro_descrip = 'COBRADA TOTAL' COLLATE utf8mb4_0900_ai_ci OR
-            c.factura_cobro_descrip = 'COBRADA PARCIAL' COLLATE utf8mb4_0900_ai_ci
-          )
+            AND YEAR(cbteFch) = 2025
+            AND (
+                c.factura_cobro_descrip = 'COBRADA TOTAL' COLLATE utf8mb4_0900_ai_ci OR
+                c.factura_cobro_descrip = 'COBRADA PARCIAL' COLLATE utf8mb4_0900_ai_ci
+            )
+            AND STR_TO_DATE(c.cobro_fec, '%Y-%m-%d') 
+                BETWEEN STR_TO_DATE(c.fec_envio_os, '%Y-%m-%d')
+                    AND DATE_ADD(STR_TO_DATE(c.fec_envio_os, '%Y-%m-%d'), INTERVAL 60 DAY);
     """
     cursor.execute(query)
     return cursor.fetchall()
@@ -110,19 +113,20 @@ def exportar_excel(datos_alertas, datos_cobrados, hoy):
         ws.append(fila)
 
     # Segunda hoja: Facturas Cobradas Recientes
-    ws2 = wb.create_sheet(title="Cobradas últimos 60 días")
-    headers_cobradas = ["ID_Factura", "Importe", "Fecha de fact.", "Fecha envío OS", "Estado", "Periodo",
-                        "OS", "Alumno", "Observaciones", "Etiqueta"]
+    ws2 = wb.create_sheet(title="Cobradas dentro de los 60 días")
+    headers_cobradas = ["ID_Factura", "Importe", "Fecha de fact.", "Fecha envío OS", "Fecha de cobro", "Estado", 
+                        "Periodo", "OS", "Alumno", "Observaciones", "Etiqueta"]
     ws2.append(headers_cobradas)
     for cell in ws2[1]:
         cell.font = Font(bold=True)
 
-    for id, importe, cbteFch, fec_envio, estado, periodo, os, nom, ape, obs, etiqueta in datos_cobrados:
+    for id, importe, cbteFch, fec_envio, fec_cobro, estado, periodo, os, nom, ape, obs, etiqueta in datos_cobrados:
         ws2.append([
             id,
             importe,
             cbteFch.date() if isinstance(cbteFch, datetime) else cbteFch,
             fec_envio.date() if isinstance(fec_envio, datetime) else fec_envio,
+            fec_cobro.date() if isinstance(fec_envio, datetime) else fec_cobro,
             estado,
             periodo,
             os,
