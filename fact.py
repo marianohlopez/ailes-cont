@@ -70,7 +70,31 @@ def extraer_datos_cobrados(cursor):
     cursor.execute(query)
     return cursor.fetchall()
 
-
+def extract_prest_sin_pa(cursor):
+  query = """ 
+    SELECT 
+      p.prestacion_id,
+      CONCAT(p.alumno_apellido, ", ",p.alumno_nombre) as alumno_completo,
+      DATE_FORMAT(COALESCE(MAX(a.asignpa_pa_fec_baja), a.asignpa_fec1), '%d-%m%-%Y') AS ultima_fecha_sin_pa,
+      DATEDIFF(CURDATE(), COALESCE(MAX(a.asignpa_pa_fec_baja), a.asignpa_fec1)) AS dias_sin_pa
+    FROM 
+      v_prestaciones p
+    LEFT JOIN 
+      v_asignaciones_pa a 
+      ON p.prestacion_id = a.asignpa_prest
+    WHERE 
+      p.prestipo_nombre_corto != 'TERAPIAS'
+      AND p.prestacion_pa IS NULL
+      AND p.prestacion_estado = 1
+      AND p.prestacion_alumno != 522
+    GROUP BY 
+      p.prestacion_id, p.prestacion_alumno
+    HAVING 
+      dias_sin_pa > 60
+	  ORDER BY dias_sin_pa;
+    """
+  cursor.execute(query)
+  return cursor.fetchall()
 
 def transformar_datos(registros, hoy):
     resultados = []
@@ -97,7 +121,7 @@ def transformar_datos(registros, hoy):
     return resultados
 
 
-def exportar_excel(datos_alertas, datos_cobrados, hoy):
+def exportar_excel(datos_alertas, datos_cobrados, prest_sin_pa, hoy):
     wb = Workbook()
     ws = wb.active
     ws.title = "Alertas"
@@ -135,7 +159,17 @@ def exportar_excel(datos_alertas, datos_cobrados, hoy):
             etiqueta
         ])
 
-    nombre_archivo = f"reporte_facturas_{hoy.strftime('%Y-%m-%d')}.xlsx"
+    # Tercera hoja: Prestaciones sin PA > 60 dias
+    ws3 = wb.create_sheet(title="Prestaciones sin PA > 60 días")
+    headers_sin_pa = ["PRESTACION ID", "ALUMNO", "FEC. DE ÚLTIMA BAJA", "DÍAS SIN PA"]
+    ws3.append(headers_sin_pa)
+    for cell in ws3[1]:
+        cell.font = Font(bold=True)
+
+    for row in prest_sin_pa:
+        ws3.append(row)
+
+    nombre_archivo = f"reporte_contable_{hoy.strftime('%Y-%m-%d')}.xlsx"
     wb.save(nombre_archivo)
     print(f"Archivo Excel generado: {nombre_archivo}")
     return nombre_archivo
@@ -147,7 +181,8 @@ def enviar_correo(nombre_archivo):
         yag.send(
             to=MAIL_DESTINO,
             subject="Reporte de Facturas emitidas - Cobros",
-            contents="Buenos días, se adjunta el reporte de facturación. ¡Saludos!",
+            contents= """Buenos días, se adjunta el reporte semanal del área contable.
+              \nSaludos,\nMariano López - Ailes Inclusión.""",
             attachments=nombre_archivo
         )
         print("Correo enviado correctamente.")
@@ -169,8 +204,11 @@ def main():
     registros_cobrados = extraer_datos_cobrados(cursor)
     print(f"Registros de cobradas recientes: {len(registros_cobrados)}")
 
+    prest_sin_pa = extract_prest_sin_pa(cursor)
+    print(f"Registros de prestaciones sin pa > 60 días: {len(prest_sin_pa)}")
+
     if datos_alertas or registros_cobrados:
-        archivo_excel = exportar_excel(datos_alertas, registros_cobrados, hoy)
+        archivo_excel = exportar_excel(datos_alertas, registros_cobrados, prest_sin_pa, hoy)
         enviar_correo(archivo_excel)
     else:
         print("No hay registros relevantes para exportar.")
