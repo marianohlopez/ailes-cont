@@ -37,8 +37,8 @@ def conectar_db():
 
 def extraer_datos_deudas(cursor):
     query = """
-        SELECT c.NroComprobante, c.ImpTotal, c.cbteFch, c.factura_cobro_descrip, c.mes_anio, o.os_nombre,
-               p.alumno_nombre, p.alumno_apellido, c.factura_obs, e.etiqueta
+        SELECT c.NroComprobante, c.ImpTotal, c.cbteFch, c.fec_envio_os, c.factura_cobro_descrip, c.mes_anio, 
+            o.os_nombre, p.alumno_nombre, p.alumno_apellido, c.factura_obs, e.etiqueta
         FROM v_comprobantes c
         LEFT JOIN v_etiquetas_facturas e ON c.id = e.comprobante_id
         JOIN v_os o ON c.os_id = o.os_id
@@ -98,7 +98,7 @@ def extract_prest_sin_pa(cursor):
 
 def transformar_datos(registros, hoy):
     resultados = []
-    for id, importe, fecha_str, descrip, periodo, oSocial, alum_nombre, alum_apellido, obs, etiqueta in registros:
+    for id, importe, fecha_str, fec_envio_os, descrip, periodo, oSocial, alum_nombre, alum_apellido, obs, etiqueta in registros:
         if fecha_str:
             try:
                 fecha = fecha_str if isinstance(fecha_str, datetime) else datetime.strptime(str(fecha_str), '%Y-%m-%d')
@@ -108,6 +108,7 @@ def transformar_datos(registros, hoy):
                         id,
                         importe,
                         fecha.date(),
+                        fec_envio_os,
                         dias,
                         descrip,
                         periodo,
@@ -126,8 +127,8 @@ def exportar_excel(datos_alertas, datos_cobrados, prest_sin_pa, hoy):
     ws = wb.active
     ws.title = "Alertas"
 
-    headers_alertas = ["ID_Factura", "Importe", "Fecha de fact.", "Días desde fecha de fact.", "Estado", "Periodo",
-               "OS", "Alumno", "Observaciones", "Etiqueta"]
+    headers_alertas = ["ID_Factura", "Importe", "Fecha de fact.", "Fecha envío OS", "Días desde fecha de fact.", 
+                       "Estado", "Periodo", "OS", "Alumno", "Observaciones", "Etiqueta"]
     ws.append(headers_alertas)
 
     for cell in ws[1]:
