@@ -114,6 +114,7 @@ def transformar_datos(registros, hoy):
                         periodo,
                         oSocial,
                         f"{alum_apellido}, {alum_nombre}",
+                        "",
                         obs,
                         etiqueta
                     ])
@@ -128,7 +129,7 @@ def exportar_excel(datos_alertas, datos_cobrados, prest_sin_pa, hoy):
     ws.title = "Alertas"
 
     headers_alertas = ["ID_Factura", "Importe", "Fecha de fact.", "Fecha envío OS", "Días desde fecha de fact.", 
-                       "Estado", "Periodo", "OS", "Alumno", "Observaciones", "Etiqueta"]
+                       "Estado", "Periodo", "OS", "Alumno", "A Indyco", "Observaciones", "Etiqueta"]
     ws.append(headers_alertas)
 
     for cell in ws[1]:
@@ -140,7 +141,7 @@ def exportar_excel(datos_alertas, datos_cobrados, prest_sin_pa, hoy):
     # Segunda hoja: Facturas Cobradas Recientes
     ws2 = wb.create_sheet(title="Cobradas dentro de los 60 días")
     headers_cobradas = ["ID_Factura", "Importe", "Fecha de fact.", "Fecha envío OS", "Fecha de cobro", "Estado", 
-                        "Periodo", "OS", "Alumno", "Observaciones", "Etiqueta"]
+                        "Periodo", "OS", "Alumno", "A Indyco", "Observaciones", "Etiqueta"]
     ws2.append(headers_cobradas)
     for cell in ws2[1]:
         cell.font = Font(bold=True)
@@ -156,6 +157,7 @@ def exportar_excel(datos_alertas, datos_cobrados, prest_sin_pa, hoy):
             periodo,
             os,
             f"{ape}, {nom}",
+            "",
             obs,
             etiqueta
         ])
