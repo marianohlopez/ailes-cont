@@ -6,7 +6,7 @@ def extraer_datos_deudas(cursor):
         LEFT JOIN v_etiquetas_facturas e ON c.id = e.comprobante_id
         JOIN v_os o ON c.os_id = o.os_id
         JOIN v_prestaciones p ON c.prestacion_id = p.prestacion_id
-        WHERE YEAR(cbteFch) = 2025
+        WHERE YEAR(cbteFch) IN (2025, 2026)
           AND factura_cobro_descrip = 'PENDIENTE' COLLATE utf8mb4_0900_ai_ci
     """
     cursor.execute(query)
@@ -21,7 +21,7 @@ def extraer_datos_cobrados(cursor):
         JOIN v_os o ON c.os_id = o.os_id
         JOIN v_prestaciones p ON c.prestacion_id = p.prestacion_id
         WHERE c.fec_envio_os IS NOT NULL
-            AND YEAR(cbteFch) = 2025
+            AND YEAR(cbteFch) IN (2025, 2026)
             AND (
                 c.factura_cobro_descrip = 'COBRADA TOTAL' COLLATE utf8mb4_0900_ai_ci OR
                 c.factura_cobro_descrip = 'COBRADA PARCIAL' COLLATE utf8mb4_0900_ai_ci
