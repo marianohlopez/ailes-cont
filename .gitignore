@@ -1,1 +1,2 @@
-/venv_cont
+venv_cont/
+__pycache__/
