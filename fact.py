@@ -1,6 +1,7 @@
 from datetime import datetime
 from db import conectar_db
-from extract import extract_prest_sin_pa, extraer_datos_cobrados, extraer_datos_deudas
+from extract import (extract_prest_sin_pa, extraer_datos_cobrados, extraer_datos_deudas, 
+                     extraer_datos_deudas_todos)
 from transform import enviar_correo, exportar_excel, transformar_datos
 
 def main():
@@ -14,6 +15,9 @@ def main():
 
     datos_alertas = transformar_datos(registros_alertas, hoy)
 
+    datos_alertas_todos = extraer_datos_deudas_todos(cursor)
+    print(f"Registros de alerta (todos) extraídos: {len(datos_alertas_todos)}")
+
     registros_cobrados = extraer_datos_cobrados(cursor)
     print(f"Registros de cobradas recientes: {len(registros_cobrados)}")
 
@@ -21,7 +25,8 @@ def main():
     print(f"Registros de prestaciones sin pa > 60 días: {len(prest_sin_pa)}")
 
     if datos_alertas or registros_cobrados:
-        archivo_excel = exportar_excel(datos_alertas, registros_cobrados, prest_sin_pa, hoy)
+        archivo_excel = exportar_excel(datos_alertas, datos_alertas_todos, registros_cobrados, 
+                                       prest_sin_pa, hoy)
         enviar_correo(archivo_excel)
     else:
         print("No hay registros relevantes para exportar.")

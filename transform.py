@@ -45,7 +45,7 @@ def transformar_datos(registros, hoy):
     return resultados
 
 
-def exportar_excel(datos_alertas, datos_cobrados, prest_sin_pa, hoy):
+def exportar_excel(datos_alertas, datos_alertas_todos, datos_cobrados, prest_sin_pa, hoy):
     wb = Workbook()
     ws = wb.active
     ws.title = "Alertas"
@@ -61,15 +61,29 @@ def exportar_excel(datos_alertas, datos_cobrados, prest_sin_pa, hoy):
         ws.append(fila)
 
     # Segunda hoja: Facturas Cobradas Recientes
-    ws2 = wb.create_sheet(title="Cobradas dentro de los 60 días")
-    headers_cobradas = ["ID_Factura", "Importe", "Fecha de fact.", "Fecha envío OS", "Fecha de cobro", "Estado", 
-                        "Periodo", "OS", "Alumno", "A Indyco", "Observaciones", "Etiqueta"]
-    ws2.append(headers_cobradas)
+    ws2 = wb.create_sheet(title="Alertas (todas)")
+
+    headers_alertas_todas = ["ID_Factura", "Importe", "Fecha de fact.", "Fecha envío OS", "Días desde fecha de fact.", 
+                       "Estado", "Periodo", "OS", "Alumno", "Observaciones", "Etiqueta"]
+    
+    ws2.append(headers_alertas_todas)
+
     for cell in ws2[1]:
         cell.font = Font(bold=True)
 
+    for fila in datos_alertas_todos:
+        ws2.append(fila)
+
+    # Tercera hoja: Facturas Cobradas Recientes
+    ws3 = wb.create_sheet(title="Cobradas dentro de los 60 días")
+    headers_cobradas = ["ID_Factura", "Importe", "Fecha de fact.", "Fecha envío OS", "Fecha de cobro", "Estado", 
+                        "Periodo", "OS", "Alumno", "A Indyco", "Observaciones", "Etiqueta"]
+    ws3.append(headers_cobradas)
+    for cell in ws3[1]:
+        cell.font = Font(bold=True)
+
     for id, importe, cbteFch, fec_envio, fec_cobro, estado, periodo, os, nom, ape, obs, etiqueta in datos_cobrados:
-        ws2.append([
+        ws3.append([
             id,
             importe,
             cbteFch.date() if isinstance(cbteFch, datetime) else cbteFch,
@@ -84,15 +98,15 @@ def exportar_excel(datos_alertas, datos_cobrados, prest_sin_pa, hoy):
             etiqueta
         ])
 
-    # Tercera hoja: Prestaciones sin PA > 60 dias
-    ws3 = wb.create_sheet(title="Prestaciones sin PA > 60 días")
+    # Cuarta hoja: Prestaciones sin PA > 60 dias
+    ws4 = wb.create_sheet(title="Prestaciones sin PA > 60 días")
     headers_sin_pa = ["PRESTACION ID", "ALUMNO", "FEC. DE ÚLTIMA BAJA", "DÍAS SIN PA"]
-    ws3.append(headers_sin_pa)
-    for cell in ws3[1]:
+    ws4.append(headers_sin_pa)
+    for cell in ws4[1]:
         cell.font = Font(bold=True)
 
     for row in prest_sin_pa:
-        ws3.append(row)
+        ws4.append(row)
 
     nombre_archivo = f"reporte_contable_{hoy.strftime('%Y-%m-%d')}.xlsx"
     wb.save(nombre_archivo)

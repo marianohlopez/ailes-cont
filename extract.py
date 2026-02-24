@@ -12,6 +12,19 @@ def extraer_datos_deudas(cursor):
     cursor.execute(query)
     return cursor.fetchall()
 
+def extraer_datos_deudas_todos(cursor):
+    query = """
+        SELECT c.NroComprobante, c.ImpTotal, c.cbteFch, c.fec_envio_os, c.factura_cobro_descrip, c.mes_anio, 
+            o.os_nombre, p.alumno_nombre, p.alumno_apellido, c.factura_obs, e.etiqueta
+        FROM v_comprobantes c
+        LEFT JOIN v_etiquetas_facturas e ON c.id = e.comprobante_id
+        JOIN v_os o ON c.os_id = o.os_id
+        JOIN v_prestaciones p ON c.prestacion_id = p.prestacion_id
+        WHERE factura_cobro_descrip = 'PENDIENTE' COLLATE utf8mb4_0900_ai_ci
+    """
+    cursor.execute(query)
+    return cursor.fetchall()
+
 def extraer_datos_cobrados(cursor):
     query = """
         SELECT c.NroComprobante, c.ImpTotal, c.cbteFch, c.fec_envio_os,  c.cobro_fec, c.factura_cobro_descrip, 
@@ -39,7 +52,7 @@ def extract_prest_sin_pa(cursor):
       p.prestacion_id,
       CONCAT(p.alumno_apellido, ", ",p.alumno_nombre) as alumno_completo,
       DATE_FORMAT(COALESCE(MAX(a.asignpa_pa_fec_baja), a.asignpa_fec1), '%d-%m%-%Y') AS ultima_fecha_sin_pa,
-      DATEDIFF(CURDATE(), COALESCE(MAX(a.asignpa_pa_fec_baja), a.asignpa_fec1)) AS dias_sin_pa
+      DATEDIFF(CURDATE(), COALESCE(MAX(a.asignpa_pa_fec_baja), p.prestacion_fec_pase_activo)) AS dias_sin_pa
     FROM 
       v_prestaciones p
     LEFT JOIN 
