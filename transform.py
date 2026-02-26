@@ -18,14 +18,28 @@ APP_GMAIL_PASS = os.getenv("APP_GMAIL_PASS")
 MAIL_DESTINO = os.getenv("MAIL_DESTINO")
 
 
-def transformar_datos(registros, hoy):
+def transformar_datos(registros, hoy, condicion):
     resultados = []
     for id, importe, fecha_str, fec_envio_os, descrip, periodo, oSocial, alum_nombre, alum_apellido, obs, etiqueta in registros:
         if fecha_str:
             try:
                 fecha = fecha_str if isinstance(fecha_str, datetime) else datetime.strptime(str(fecha_str), '%Y-%m-%d')
                 dias = (hoy - fecha).days
-                if dias > 45:
+                if condicion == 'todas':
+                    resultados.append([
+                        id,
+                        importe,
+                        fecha.date(),
+                        fec_envio_os,
+                        dias,
+                        descrip,
+                        periodo,
+                        oSocial,
+                        f"{alum_apellido}, {alum_nombre}",
+                        obs,
+                        etiqueta
+                    ])
+                elif dias > 45:
                     resultados.append([
                         id,
                         importe,
@@ -65,6 +79,8 @@ def exportar_excel(datos_alertas, datos_alertas_todos, datos_cobrados, prest_sin
 
     headers_alertas_todas = ["ID_Factura", "Importe", "Fecha de fact.", "Fecha envío OS", "Días desde fecha de fact.", 
                        "Estado", "Periodo", "OS", "Alumno", "Observaciones", "Etiqueta"]
+    ["ID_Factura", "Importe", "Fecha de fact.", "Fecha envío OS", "Días desde fecha de fact.", 
+                       "Estado", "Periodo", "OS", "Alumno", "A Indyco", "Observaciones", "Etiqueta"]
     
     ws2.append(headers_alertas_todas)
 

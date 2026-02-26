@@ -13,10 +13,12 @@ def main():
     registros_alertas = extraer_datos_deudas(cursor)
     print(f"Registros de alerta extraídos: {len(registros_alertas)}")
 
-    datos_alertas = transformar_datos(registros_alertas, hoy)
+    datos_alertas = transformar_datos(registros_alertas, hoy, '')
 
-    datos_alertas_todos = extraer_datos_deudas_todos(cursor)
-    print(f"Registros de alerta (todos) extraídos: {len(datos_alertas_todos)}")
+    registros_alertas_todos = extraer_datos_deudas_todos(cursor)
+    print(f"Registros de alerta (todos) extraídos: {len(registros_alertas_todos)}")
+
+    datos_alertas_todos = transformar_datos(registros_alertas_todos, hoy, 'todas')
 
     registros_cobrados = extraer_datos_cobrados(cursor)
     print(f"Registros de cobradas recientes: {len(registros_cobrados)}")
